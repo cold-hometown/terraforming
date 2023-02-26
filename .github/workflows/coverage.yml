@@ -1,0 +1,48 @@
+name: Code Coverage
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/coverage.yml"
+      - "*.rs"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/coverage.yml"
+      - "*.rs"
+
+env:
+  RUST_TOOLCHAIN: "1.65"
+  TARPAULIN: "0.15.0"
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          target: ${{ matrix.job.target }}
+          override: true
+          profile: minimal
+      - name: Install prerequisites
+        run: |
+          cargo install --force cargo-make
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: ${{ matrix.job.os }}
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          version: ${{ env.TARPAULIN }}
+          args: --verbose --all-features --workspace
+          out-type: Xml
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true

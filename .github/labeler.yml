@@ -1,0 +1,15 @@
+enhancement:
+  - "*.rust"
+  - "**/*.rust"
+
+dependencies:
+  - Cargo.toml
+
+configuration:
+  - ".gitignore"
+  - "*.yml"
+  - Cargo.yoml
+
+project-management:
+  - ".github/*"
+  - "*.md"

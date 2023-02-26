@@ -1,0 +1,54 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/continuous-integration.yml"
+      - "**/*/Cargo.toml"
+      - "**/*/Cargo.lock"
+      - "*.rs"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/continuous-integration.yml"
+      - "**/*/Cargo.toml"
+      - "**/*/Cargo.lock"
+      - "*.rs"
+
+env:
+  RUST_TOOLCHAIN: "1.65"
+
+jobs:
+  ci:
+    strategy:
+      matrix:
+        platform: [ ubuntu-latest, macos-latest ]
+        rust-version: [ 1.67.1 ]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          override: true
+          components: rustfmt, clippy
+          profile: minimal
+      - name: Install prerequisites
+        run: |
+          cargo install --force cargo-make
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: ${{ matrix.job.os }}
+      - name: rustfmt
+        run: |
+          cargo fmt --all -- --check
+      - name: clippy
+        run: |
+          cargo clippy
+      - name: test
+        run: |
+          cargo test
